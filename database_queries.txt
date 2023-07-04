@@ -1,0 +1,5 @@
+INSERT INTO api_player (name, surname, nick, year_of_birth, height, weight, position)
+VALUES ('Bartłomiej', 'Falkowski', '', '1987', '195', NULL, 'OH');
+INSERT INTO api_player (name, surname, nick, year_of_birth, height, weight, position)
+VALUES ('Szymon', 'Jakubowski', '', '1986', '175', 77, 'S');
+INSERT INTO api_team (name, description) VALUES ('Sideout', '#Wciśniemy');
