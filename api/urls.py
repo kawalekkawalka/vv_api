@@ -6,6 +6,7 @@ from django.conf.urls import include
 
 router = routers.DefaultRouter()
 router.register(r'players', views.PlayerViewset)
+router.register(r'teams', views.TeamViewset)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),
