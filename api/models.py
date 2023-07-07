@@ -26,7 +26,7 @@ class Player(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=64)
     description = models.TextField(max_length=512)
-    players = models.ManyToManyField(Player, through="PlayerMembership")
+    players = models.ManyToManyField(Player, through="PlayerMembership", through_fields=("team", "player"))
 
     def __str__(self):
         return self.name
