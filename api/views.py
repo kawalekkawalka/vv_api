@@ -1,9 +1,16 @@
 from django.shortcuts import render
 from rest_framework import viewsets
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from django.contrib.auth.models import User
+from api.models import Player, Team, UserProfile
+from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer
 
-from api.models import Player, Team
-from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer
+
+class UserProfileViewset(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
 
 
 class PlayerViewset(viewsets.ModelViewSet):
@@ -19,4 +26,13 @@ class TeamViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = TeamFullSerializer(instance, many=False, context={'request': request})
         return Response(serializer.data)
+
+
+class CustomObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        response = super(CustomObtainAuthToken, self).post(request, *args, **kwargs)
+        token = Token.objects.get(key=response.data['token'])
+        user = User.objects.get(id=token.user_id)
+        userSerializer = UserSerializer(user, many=False)
+        return Response({'token': token.key, 'user': userSerializer.data})
 
