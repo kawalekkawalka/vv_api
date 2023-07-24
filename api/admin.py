@@ -10,7 +10,7 @@ class PlayerMembershipInline(admin.TabularInline):
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    fields = ('name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position')
+    fields = ('name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo')
     list_display = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position')
 
 

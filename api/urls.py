@@ -7,8 +7,10 @@ from django.conf.urls import include
 router = routers.DefaultRouter()
 router.register(r'players', views.PlayerViewset)
 router.register(r'teams', views.TeamViewset)
+router.register(r'users', views.UserViewset)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),
     re_path('authenticate/', views.CustomObtainAuthToken.as_view())
+
 ]

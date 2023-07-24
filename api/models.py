@@ -1,9 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+from django.conf import settings
+import io
 
 
 def upload_path_handler(instance, filename):
-    return "avatars/{id}/{file}".format(id=instance.user.id, file=filename)
+    return "avatars/{id}/{file}".format(id=instance.id, file=filename)
 
 
 class Player(models.Model):
@@ -21,10 +24,18 @@ class Player(models.Model):
     height = models.DecimalField(max_digits=3, decimal_places=0)
     weight = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
     position = models.CharField(max_length=2, choices=POSITIONS)
-    # photo = models.ImageField(upload_to=upload_path_handler, null=True, blank=True)
+    photo = models.ImageField(upload_to=upload_path_handler, default=settings.MEDIA_ROOT + "/avatars/user.png",
+                              null=True, blank=True)
 
     def __str__(self):
         return self.name + " " + self.surname
+
+    @property
+    def get_photo_url(self):
+        if self.photo and hasattr(self.photo, 'url'):
+            return self.photo.url
+        else:
+            return "/avatars/user.png"
 
 
 class UserProfile(models.Model):

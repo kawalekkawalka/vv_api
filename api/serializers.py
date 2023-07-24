@@ -1,34 +1,45 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
+from rest_framework.authtoken.models import Token
 from api.models import Player, Team, PlayerMembership, UserProfile
 
 
 class PlayerSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Player
-        fields = '__all__'
+        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo')
+        extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
+                        'year_of_birth': {'required': False}, 'position': {'required': False}}
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    player = PlayerSerializer
 
     class Meta:
         model = UserProfile
-        fields = ('id', 'player')
+        fields = ('id', 'player', 'user')
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer
     player = serializers.SerializerMethodField('get_player_from_profile')
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'profile', 'player')
+        fields = ('id', 'username', 'password', 'email', 'player')
+        extra_kwargs = {'password': {'write_only': True}}
 
     def get_player_from_profile(self, profile):
-        player = model_to_dict(profile.profile.player)
-        return player
+        player = PlayerSerializer(profile.profile.player)
+        return player.data
+
+    def create(self, validated_data):
+        player = self.context['request'].data['player']
+        user = User.objects.create_user(**validated_data)
+        player = Player.objects.create(**player)
+        UserProfile.objects.create(player=player, user=user)
+        Token.objects.create(user=user)
+        return user
 
 
 class MemberSerializer(serializers.ModelSerializer):
