@@ -29,7 +29,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'password', 'email', 'player')
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_player_from_profile(self, profile):
+    @staticmethod
+    def get_player_from_profile(profile):
         player = PlayerSerializer(profile.profile.player)
         return player.data
 
@@ -40,6 +41,11 @@ class UserSerializer(serializers.ModelSerializer):
         UserProfile.objects.create(player=player, user=user)
         Token.objects.create(user=user)
         return user
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
 
 class MemberSerializer(serializers.ModelSerializer):
