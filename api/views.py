@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -55,16 +57,22 @@ class MemberViewset(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def join(self, request):
         if 'player' in request.data and 'team' in request.data:
-            try:
-                player = Player.objects.get(id=request.data['player'])
-                team = Team.objects.get(id=request.data['team'])
-                member = PlayerMembership.objects.create(player=player, team=team)
-                serializer = MemberSerializer(member, many=False)
-                response = {'message': 'Added to team', 'results': serializer.data}
-                return Response(response, status=status.HTTP_201_CREATED)
-            except:
-                response = {'message': 'Already in team'}
-                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            player = Player.objects.get(id=request.data['player'])
+            team = Team.objects.get(id=request.data['team'])
+
+            if PlayerMembership.objects.filter(player=player, team=team).exists():
+                member = PlayerMembership.objects.get(player=player, team=team)
+                member.date_left = None
+                member.save()
+                response = {'message': 'Rejoined team'}
+                return Response(response, status=status.HTTP_200_OK)
+
+            member = PlayerMembership.objects.create(player=player, team=team)
+            serializer = MemberSerializer(member, many=False)
+            response = {'message': 'Added to team', 'results': serializer.data}
+            return Response(response, status=status.HTTP_201_CREATED)
+
+
         else:
             response = {'message': 'Wrong parameters'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -75,7 +83,8 @@ class MemberViewset(viewsets.ModelViewSet):
             player = Player.objects.get(id=request.data['player'])
             team = Team.objects.get(id=request.data['team'])
             member = PlayerMembership.objects.get(player=player, team=team)
-            member.delete()
+            member.date_left = date.today()
+            member.save()
             response = {'message': 'Removed from team'}
             return Response(response, status=status.HTTP_200_OK)
         else:

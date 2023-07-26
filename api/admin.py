@@ -25,3 +25,9 @@ class TeamAdmin(admin.ModelAdmin):
     inlines = [PlayerMembershipInline]
     fields = ('name', 'description')
     list_display = ('id', 'name', 'description')
+
+
+@admin.register(PlayerMembership)
+class MemberAdmin(admin.ModelAdmin):
+    fields = ('player', 'team', 'date_left')
+    list_display = ('id', 'player', 'team', 'date_joined', 'date_left')
