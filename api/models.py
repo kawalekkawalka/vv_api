@@ -57,3 +57,6 @@ class PlayerMembership(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     date_joined = models.DateField(auto_now_add=True)
     date_left = models.DateField(null=True, blank=True)
+
+    class Meta:
+        unique_together = (('player', 'team'),)

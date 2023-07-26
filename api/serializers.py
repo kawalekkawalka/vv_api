@@ -48,16 +48,19 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 
-class MemberSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PlayerMembership
-        fields = ('id', 'player', 'team', 'date_joined')
-
-
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ('id', 'name', 'description')
+
+
+class MemberSerializer(serializers.ModelSerializer):
+    player = PlayerSerializer(many=False)
+    team = TeamSerializer(many=False)
+
+    class Meta:
+        model = PlayerMembership
+        fields = ('id', 'player', 'team', 'date_joined')
 
 
 class TeamFullSerializer(serializers.ModelSerializer):
