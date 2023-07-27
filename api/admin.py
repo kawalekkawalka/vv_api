@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Player, Team, PlayerMembership, UserProfile
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment
 
 
 class PlayerMembershipInline(admin.TabularInline):
@@ -31,3 +31,9 @@ class TeamAdmin(admin.ModelAdmin):
 class MemberAdmin(admin.ModelAdmin):
     fields = ('player', 'team', 'date_left')
     list_display = ('id', 'player', 'team', 'date_joined', 'date_left')
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    fields = ('user', 'description', 'content_type', 'object_id')
+    list_display = ('user', 'time', 'description', 'content_type', 'object_id')

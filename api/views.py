@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -7,9 +8,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from api.models import Player, Team, UserProfile, PlayerMembership
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
-    ChangePasswordSerializer, MemberSerializer
+    ChangePasswordSerializer, MemberSerializer, CommentSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -46,6 +47,22 @@ class PlayerViewset(viewsets.ModelViewSet):
     serializer_class = PlayerSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+
+class CommentViewset(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    # authentication_classes = (TokenAuthentication,)
+    # permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        content_type_name = data.get('content_type')
+        content_type = ContentType.objects.get(model=content_type_name)
+        user = User.objects.get(pk=data.get('user'))
+        Comment.objects.create(content_type=content_type, user=user, object_id=data.get('object_id'),
+                               description=data.get('description'))
+        return Response({'message': 'Comment added'}, status=status.HTTP_200_OK)
 
 
 class MemberViewset(viewsets.ModelViewSet):

@@ -9,6 +9,7 @@ router.register(r'players', views.PlayerViewset)
 router.register(r'teams', views.TeamViewset)
 router.register(r'users', views.UserViewset)
 router.register(r'members', views.MemberViewset)
+router.register(r'comments', views.CommentViewset)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),

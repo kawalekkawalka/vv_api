@@ -1,8 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
 from rest_framework.authtoken.models import Token
-from api.models import Player, Team, PlayerMembership, UserProfile
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -63,12 +64,33 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = ('id', 'player', 'team', 'date_joined', 'date_left')
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    # commented_object = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'user', 'description')
+
+    def get_commented_object(self, obj):
+        if obj.content_type.model == 'team':
+            team = Team.objects.get(pk=obj.object_id)
+            serializer = TeamSerializer(team)
+        return serializer.data
+
+    def get_user(self, obj):
+        user = User.objects.get(pk=obj.user.id)
+        serialized_user = UserSerializer(user, many=False)
+        return serialized_user.data
+
+
 class TeamFullSerializer(serializers.ModelSerializer):
     players = serializers.SerializerMethodField('get_active_players')
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Team
-        fields = ('id', 'name', 'description', 'players')
+        fields = ('id', 'name', 'description', 'players', 'comments')
 
     def get_active_players(self, obj):
         players = obj.players.all()
@@ -83,3 +105,8 @@ class TeamFullSerializer(serializers.ModelSerializer):
                 active_players.append(player_serialized.data)
 
         return active_players
+
+    def get_comments(self, obj):
+        comments = Comment.objects.filter(object_id=obj.id)
+        serializer = CommentSerializer(comments, many=True)
+        return serializer.data
