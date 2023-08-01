@@ -52,17 +52,39 @@ class PlayerViewset(viewsets.ModelViewSet):
 class CommentViewset(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    # authentication_classes = (TokenAuthentication,)
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         data = request.data
         content_type_name = data.get('content_type')
         content_type = ContentType.objects.get(model=content_type_name)
         user = User.objects.get(pk=data.get('user'))
-        Comment.objects.create(content_type=content_type, user=user, object_id=data.get('object_id'),
-                               description=data.get('description'))
-        return Response({'message': 'Comment added'}, status=status.HTTP_200_OK)
+        comment = Comment.objects.create(content_type=content_type, user=user, object_id=data.get('object_id'),
+                                         description=data.get('description'))
+        result = CommentSerializer(comment, many=False)
+        return Response({'message': 'Comment added', 'result': result.data}, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        response = {'message': 'Method not allowed'}
+        return Response(response, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=['DELETE'], detail=False, permission_classes=(IsAuthenticated,))
+    def delete_comment(self, request):
+        if request.data:
+            comment_id = request.data
+            try:
+                comment = Comment.objects.get(pk=comment_id)
+                if comment.user == request.user:
+                    comment.delete()
+                    response = {'message': 'Successfully deleted'}
+                    return Response(response, status=status.HTTP_200_OK)
+                else:
+                    response = {'message': 'Its not your comment'}
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            except:
+                response = {'message': 'Wrong comment id'}
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MemberViewset(viewsets.ModelViewSet):
@@ -128,4 +150,3 @@ class CustomObtainAuthToken(ObtainAuthToken):
         user = User.objects.get(id=token.user_id)
         user_serializer = UserSerializer(user, many=False)
         return Response({'token': token.key, 'user': user_serializer.data})
-
