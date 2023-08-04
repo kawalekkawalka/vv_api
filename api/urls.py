@@ -10,6 +10,7 @@ router.register(r'teams', views.TeamViewset)
 router.register(r'users', views.UserViewset)
 router.register(r'members', views.MemberViewset)
 router.register(r'comments', views.CommentViewset)
+router.register(r'matches', views.CommentViewset)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),

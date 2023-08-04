@@ -3,11 +3,10 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
 from rest_framework.authtoken.models import Token
-from api.models import Player, Team, PlayerMembership, UserProfile, Comment
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match
 
 
 class PlayerSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Player
         fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo')
@@ -16,7 +15,6 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserProfile
         fields = ('id', 'player', 'user')
@@ -90,7 +88,7 @@ class TeamFullSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Team
-        fields = ('id', 'name', 'description', 'players', 'comments')
+        fields = ('id', 'name', 'description', 'players', 'comments', 'owner')
 
     def get_active_players(self, obj):
         players = obj.players.all()
@@ -110,3 +108,11 @@ class TeamFullSerializer(serializers.ModelSerializer):
         comments = Comment.objects.filter(object_id=obj.id)
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
+
+
+class MatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Match
+        fields = ('id', 'team1', 'team2', 'time', 'set1_team1_score', 'set2_team1_score', 'set3_team1_score',
+                  'set4_team1_score', 'set5_team1_score', 'set1_team2_score', 'set2_team2_score', 'set3_team2_score',
+                  'set4_team2_score', 'set5_team2_score')

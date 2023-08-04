@@ -51,6 +51,7 @@ class Team(models.Model):
     name = models.CharField(max_length=64)
     description = models.TextField(max_length=512)
     players = models.ManyToManyField(Player, through="PlayerMembership", through_fields=("team", "player"))
+    owner = models.ForeignKey(User, related_name='teams', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -76,3 +77,17 @@ class Comment(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
 
 
+class Match(models.Model):
+    team1 = models.ForeignKey(Team, related_name='home_matches', on_delete=models.CASCADE)
+    team2 = models.ForeignKey(Team, related_name='away_matches', on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    set1_team1_score = models.PositiveSmallIntegerField(default=0)
+    set2_team1_score = models.PositiveSmallIntegerField(default=0)
+    set3_team1_score = models.PositiveSmallIntegerField(default=0)
+    set4_team1_score = models.PositiveSmallIntegerField(default=0)
+    set5_team1_score = models.PositiveSmallIntegerField(default=0)
+    set1_team2_score = models.PositiveSmallIntegerField(default=0)
+    set2_team2_score = models.PositiveSmallIntegerField(default=0)
+    set3_team2_score = models.PositiveSmallIntegerField(default=0)
+    set4_team2_score = models.PositiveSmallIntegerField(default=0)
+    set5_team2_score = models.PositiveSmallIntegerField(default=0)

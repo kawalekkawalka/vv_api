@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Player, Team, PlayerMembership, UserProfile, Comment
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match
 
 
 class PlayerMembershipInline(admin.TabularInline):
@@ -23,8 +23,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
     inlines = [PlayerMembershipInline]
-    fields = ('name', 'description')
-    list_display = ('id', 'name', 'description')
+    fields = ('name', 'description', 'owner')
+    list_display = ('id', 'name', 'description', 'owner')
 
 
 @admin.register(PlayerMembership)
@@ -37,3 +37,13 @@ class MemberAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     fields = ('user', 'description', 'content_type', 'object_id')
     list_display = ('user', 'time', 'description', 'content_type', 'object_id')
+
+
+@admin.register(Match)
+class MatchAdmin(admin.ModelAdmin):
+    fields = ('team1', 'team2', 'time', 'set1_team1_score', 'set2_team1_score', 'set3_team1_score', 'set4_team1_score',
+              'set5_team1_score', 'set1_team2_score', 'set2_team2_score', 'set3_team2_score', 'set4_team2_score',
+              'set5_team2_score')
+    list_display = ('id', 'team1', 'team2', 'time', 'set1_team1_score', 'set2_team1_score', 'set3_team1_score',
+                    'set4_team1_score', 'set5_team1_score', 'set1_team2_score', 'set2_team2_score', 'set3_team2_score',
+                    'set4_team2_score', 'set5_team2_score')
