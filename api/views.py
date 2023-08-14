@@ -8,9 +8,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from api.models import Player, Team, UserProfile, PlayerMembership, Comment
+from django.utils import timezone
+from django.db.models import Q
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
-    ChangePasswordSerializer, MemberSerializer, CommentSerializer
+    ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -141,6 +143,31 @@ class TeamViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = TeamFullSerializer(instance, many=False, context={'request': request})
         return Response(serializer.data)
+
+
+class MatchViewset(viewsets.ModelViewSet):
+    serializer_class = MatchSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        queryset = Match.objects.all().order_by('-time')
+
+        team_id = self.request.query_params.get('team')
+        if team_id is not None:
+            queryset = queryset.filter(Q(team1=team_id) | Q(team2=team_id))
+
+        time = self.request.query_params.get('time')
+        if time is not None:
+            actual_time = timezone.now()
+            if time == "past":
+                queryset = queryset.filter(time__lte=actual_time)
+            if time == "future":
+                queryset = queryset.filter(time__gte=actual_time).order_by('time')
+
+        match_amount = int(self.request.query_params.get('amount', default=5))
+        queryset = queryset[:match_amount]
+        return queryset
 
 
 class CustomObtainAuthToken(ObtainAuthToken):
