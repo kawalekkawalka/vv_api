@@ -111,8 +111,19 @@ class TeamFullSerializer(serializers.ModelSerializer):
 
 
 class MatchSerializer(serializers.ModelSerializer):
+    team1_name = serializers.SerializerMethodField()
+    team2_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Match
-        fields = ('id', 'team1', 'team2', 'time', 'set1_team1_score', 'set2_team1_score', 'set3_team1_score',
-                  'set4_team1_score', 'set5_team1_score', 'set1_team2_score', 'set2_team2_score', 'set3_team2_score',
-                  'set4_team2_score', 'set5_team2_score')
+        fields = ('id', 'team1', 'team2', 'team1_name', 'team2_name', 'time', 'set1_team1_score', 'set2_team1_score',
+                  'set3_team1_score', 'set4_team1_score', 'set5_team1_score', 'set1_team2_score', 'set2_team2_score',
+                  'set3_team2_score', 'set4_team2_score', 'set5_team2_score')
+
+    def get_team1_name(self, obj):
+        name = obj.team1.name
+        return name
+
+    def get_team2_name(self, obj):
+        name = obj.team2.name
+        return name
