@@ -91,3 +91,11 @@ class Match(models.Model):
     set3_team2_score = models.PositiveSmallIntegerField(default=0)
     set4_team2_score = models.PositiveSmallIntegerField(default=0)
     set5_team2_score = models.PositiveSmallIntegerField(default=0)
+
+
+class TeamInvitation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user', 'team'),)

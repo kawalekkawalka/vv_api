@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
 from rest_framework.authtoken.models import Token
-from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -50,7 +50,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ('id', 'name', 'description')
+        fields = ('id', 'name', 'description', 'owner')
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -127,3 +127,11 @@ class MatchSerializer(serializers.ModelSerializer):
     def get_team2_name(self, obj):
         name = obj.team2.name
         return name
+
+
+class TeamInvitationSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False)
+
+    class Meta:
+        model = TeamInvitation
+        fields = ('id', 'user', 'team')

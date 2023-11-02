@@ -10,9 +10,9 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
-from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
-    ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer
+    ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -177,3 +177,50 @@ class CustomObtainAuthToken(ObtainAuthToken):
         user = User.objects.get(id=token.user_id)
         user_serializer = UserSerializer(user, many=False)
         return Response({'token': token.key, 'user': user_serializer.data})
+
+
+class TeamInvitationViewset(viewsets.ModelViewSet):
+    queryset = TeamInvitation.objects.all()
+    serializer_class = TeamInvitationSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def create(self, request, *args, **kwargs):
+        if 'user' in request.data and 'team' in request.data:
+            user = User.objects.get(id=request.data['user'])
+            team = Team.objects.get(id=request.data['team'])
+
+            if TeamInvitation.objects.filter(user=user, team=team).exists():
+                response = {'message': 'Invitation already sent before'}
+                return Response(response, status=status.HTTP_200_OK)
+
+            invitation = TeamInvitation.objects.create(user=user, team=team)
+            serializer = TeamInvitationSerializer(invitation, many=False)
+            response = {'message': 'Invitation sent', 'results': serializer.data}
+            return Response(response, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        queryset = TeamInvitation.objects.all()
+
+        team_id = self.request.query_params.get('team')
+        if team_id is not None:
+            queryset = queryset.filter(team=team_id)
+
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        response = {'message': 'Method not allowed'}
+        return Response(response, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=['DELETE'], detail=False, permission_classes=(IsAuthenticated,))
+    def delete_invitation(self, request):
+        if request.data:
+            invitation_id = request.data
+            try:
+                invitation = TeamInvitation.objects.get(pk=invitation_id)
+                invitation.delete()
+                response = {'message': 'Successfully deleted'}
+                return Response(response, status=status.HTTP_200_OK)
+            except:
+                response = {'message': 'Wrong invitation id'}
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
