@@ -99,3 +99,5 @@ class TeamInvitation(models.Model):
 
     class Meta:
         unique_together = (('user', 'team'),)
+
+
