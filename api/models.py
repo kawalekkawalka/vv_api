@@ -92,6 +92,9 @@ class Match(models.Model):
     set4_team2_score = models.PositiveSmallIntegerField(default=0)
     set5_team2_score = models.PositiveSmallIntegerField(default=0)
 
+    def __str__(self):
+        return str(self.team1) + ' vs ' + str(self.team2)
+
 
 class TeamInvitation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -101,3 +104,27 @@ class TeamInvitation(models.Model):
         unique_together = (('user', 'team'),)
 
 
+class MatchPerformance(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    set1_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    set2_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    set3_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    set4_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    set5_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    serve = models.PositiveSmallIntegerField(default=0)
+    serve_error = models.PositiveSmallIntegerField(default=0)
+    serve_ace = models.PositiveSmallIntegerField(default=0)
+    reception = models.PositiveSmallIntegerField(default=0)
+    positive_reception = models.PositiveSmallIntegerField(default=0)
+    reception_error = models.PositiveSmallIntegerField(default=0)
+    spike = models.PositiveSmallIntegerField(default=0)
+    spike_point = models.PositiveSmallIntegerField(default=0)
+    spike_block = models.PositiveSmallIntegerField(default=0)
+    spike_error = models.PositiveSmallIntegerField(default=0)
+    block_amount = models.PositiveSmallIntegerField(default=0)
+    dig = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        unique_together = (('player', 'match'),)

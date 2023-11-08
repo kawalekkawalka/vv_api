@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
-from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation, MatchPerformance
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
-    ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer
+    ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer, \
+    MatchPerformanceSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -224,3 +225,29 @@ class TeamInvitationViewset(viewsets.ModelViewSet):
             except:
                 response = {'message': 'Wrong invitation id'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MatchPerformanceViewset(viewsets.ModelViewSet):
+    queryset = MatchPerformance.objects.all()
+    serializer_class = MatchPerformanceSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        queryset = MatchPerformance.objects.all()
+
+        player_id = self.request.query_params.get('player')
+        if player_id is not None:
+            queryset = queryset.filter(player=player_id)
+
+        team_id = self.request.query_params.get('team')
+        if team_id is not None:
+            queryset = queryset.filter(team=team_id)
+
+        match_id = self.request.query_params.get('match')
+        if match_id is not None:
+            queryset = queryset.filter(match=match_id)
+
+        match_performances_amount = int(self.request.query_params.get('amount', default=100))
+        queryset = queryset[:match_performances_amount]
+        return queryset

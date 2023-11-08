@@ -11,6 +11,7 @@ router.register(r'users', views.UserViewset)
 router.register(r'members', views.MemberViewset)
 router.register(r'comments', views.CommentViewset)
 router.register(r'team-invitations', views.TeamInvitationViewset)
+router.register(r'match-performances', views.MatchPerformanceViewset)
 router.register(r'matches', views.MatchViewset, basename='Match')
 
 urlpatterns = [

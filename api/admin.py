@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation, MatchPerformance
 
 
 class PlayerMembershipInline(admin.TabularInline):
@@ -53,3 +53,13 @@ class MatchAdmin(admin.ModelAdmin):
     list_display = ('id', 'team1', 'team2', 'time', 'set1_team1_score', 'set2_team1_score', 'set3_team1_score',
                     'set4_team1_score', 'set5_team1_score', 'set1_team2_score', 'set2_team2_score', 'set3_team2_score',
                     'set4_team2_score', 'set5_team2_score')
+
+
+@admin.register(MatchPerformance)
+class MatchPerformanceAdmin(admin.ModelAdmin):
+    fields = ('player', 'match', 'team', 'set1_position', 'set2_position', 'set3_position', 'set4_position',
+              'set5_position', 'serve', 'serve_error', 'serve_ace', 'reception', 'positive_reception',
+              'reception_error', 'spike', 'spike_point', 'spike_block', 'spike_error', 'block_amount', 'dig',)
+    list_display = ('id', 'player', 'match', 'team', 'set1_position', 'set2_position', 'set3_position', 'set4_position'
+                    , 'set5_position', 'serve', 'serve_error', 'serve_ace', 'reception', 'positive_reception',
+                    'reception_error', 'spike', 'spike_point', 'spike_block', 'spike_error', 'block_amount', 'dig',)
