@@ -13,7 +13,7 @@ from django.db.models import Q
 from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation, MatchPerformance
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
     ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer, \
-    MatchPerformanceSerializer
+    MatchPerformanceSerializer, MatchFullSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -57,6 +57,25 @@ class CommentViewset(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        queryset = Comment.objects.all()
+
+        player_id = self.request.query_params.get('player')
+        if player_id is not None:
+            queryset = queryset.filter(player=player_id)
+
+        team_id = self.request.query_params.get('team')
+        if team_id is not None:
+            queryset = queryset.filter(team=team_id)
+
+        match_id = self.request.query_params.get('match')
+        if match_id is not None:
+            queryset = queryset.filter(match=match_id)
+
+        match_performances_amount = int(self.request.query_params.get('amount', default=100))
+        queryset = queryset[:match_performances_amount]
+        return queryset
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -150,6 +169,11 @@ class MatchViewset(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = Match.objects.get(pk=kwargs['pk'])
+        serializer = MatchFullSerializer(instance, many=False, context={'request': request})
+        return Response(serializer.data)
 
     def get_queryset(self):
         queryset = Match.objects.all().order_by('-time')
