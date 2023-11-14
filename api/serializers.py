@@ -14,6 +14,21 @@ class PlayerSerializer(serializers.ModelSerializer):
                         'year_of_birth': {'required': False}, 'position': {'required': False}}
 
 
+class PlayerFullSerializer(serializers.ModelSerializer):
+    comments = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Player
+        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo', 'comments')
+        extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
+                        'year_of_birth': {'required': False}, 'position': {'required': False}}
+
+    def get_comments(self, obj):
+        comments = Comment.objects.filter(object_id=obj.id, content_type=8)
+        serializer = CommentSerializer(comments, many=True)
+        return serializer.data
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile

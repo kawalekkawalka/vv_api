@@ -13,7 +13,7 @@ from django.db.models import Q
 from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation, MatchPerformance
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
     ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer, \
-    MatchPerformanceSerializer, MatchFullSerializer
+    MatchPerformanceSerializer, MatchFullSerializer, PlayerFullSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -50,6 +50,11 @@ class PlayerViewset(viewsets.ModelViewSet):
     serializer_class = PlayerSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = PlayerFullSerializer(instance, many=False, context={'request': request})
+        return Response(serializer.data)
 
 
 class CommentViewset(viewsets.ModelViewSet):
