@@ -1,19 +1,18 @@
 from datetime import date
 
 from django.contrib.contenttypes.models import ContentType
-from django.shortcuts import render
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Q, Count, Sum, Avg
-from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation, MatchPerformance
+from django.db.models import Q
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
     ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer, \
-    MatchPerformanceSerializer, MatchFullSerializer, PlayerFullSerializer
+    MatchFullSerializer, PlayerFullSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -256,89 +255,3 @@ class TeamInvitationViewset(viewsets.ModelViewSet):
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MatchPerformanceViewset(viewsets.ModelViewSet):
-    queryset = MatchPerformance.objects.all()
-    serializer_class = MatchPerformanceSerializer
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def get_queryset(self):
-        queryset = MatchPerformance.objects.all()
-
-        player_id = self.request.query_params.get('player')
-        if player_id is not None:
-            queryset = queryset.filter(player=player_id)
-
-        team_id = self.request.query_params.get('team')
-        if team_id is not None:
-            queryset = queryset.filter(team=team_id)
-
-        match_id = self.request.query_params.get('match')
-        if match_id is not None:
-            queryset = queryset.filter(match=match_id)
-
-        match_performances_amount = int(self.request.query_params.get('amount', default=100))
-        queryset = queryset[:match_performances_amount]
-        return queryset
-
-    @action(methods=['GET'], detail=False)
-    def get_avg_team_performance(self, request):
-        team_id = self.request.query_params.get('team')
-        if team_id is not None:
-            queryset = MatchPerformance.objects.all()
-            queryset = queryset.filter(team=team_id)
-
-            # works for performances not matches
-            performances_amount = self.request.query_params.get('amount')
-            if performances_amount is not None:
-                queryset = queryset[:int(performances_amount)]
-
-            results = self.calculate_avg(queryset)
-
-            response = {'message': 'Successfully calculated', 'results': results}
-            return Response(response, status=status.HTTP_200_OK)
-        else:
-            response = {'message': 'Wrong params'}
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-    def calculate_avg(self, queryset):
-        queryset_length = len(queryset)
-        serve = queryset.aggregate(Sum('serve'))['serve__sum']
-        serve_error = queryset.aggregate(Sum('serve_error'))['serve_error__sum']
-        serve_ace = queryset.aggregate(Sum('serve_ace'))['serve_ace__sum']
-        reception = queryset.aggregate(Sum('reception'))['reception__sum']
-        positive_reception = queryset.aggregate(Sum('positive_reception'))['positive_reception__sum']
-        reception_error = queryset.aggregate(Sum('reception_error'))['reception_error__sum']
-        spike = queryset.aggregate(Sum('spike'))['spike__sum']
-        spike_point = queryset.aggregate(Sum('spike_point'))['spike_point__sum']
-        spike_block = queryset.aggregate(Sum('spike_block'))['spike_block__sum']
-        spike_error = queryset.aggregate(Sum('spike_error'))['spike_error__sum']
-        block_amount = queryset.aggregate(Sum('block_amount'))['block_amount__sum']
-        dig = queryset.aggregate(Sum('dig'))['dig__sum']
-
-        total_score = spike_point + serve_ace + block_amount
-        total_score_balance = total_score - serve_error - reception_error - spike_error - spike_block
-        positive_reception_percentage = round((positive_reception / reception) * 100)
-        spike_kill_percentage = round((spike_point / spike) * 100)
-        spike_efficiency = round(((spike_point - spike_error - spike_block) / spike) * 100)
-
-        results = {
-            'total_score': total_score / queryset_length,
-            'total_score_balance': total_score_balance / queryset_length,
-            'serve': serve / queryset_length,
-            'serve_error': serve_error / queryset_length,
-            'serve_ace': serve_ace / queryset_length,
-            'reception': reception / queryset_length,
-            'positive_reception': positive_reception / queryset_length,
-            'reception_error': reception_error / queryset_length,
-            'positive_reception_percentage': positive_reception_percentage,
-            'spike': spike / queryset_length,
-            'spike_point': spike_point / queryset_length,
-            'spike_block': spike_block / queryset_length,
-            'spike_error': spike_error / queryset_length,
-            'spike_kill_percentage': spike_kill_percentage,
-            'spike_efficiency': spike_efficiency,
-            'block_amount': block_amount / queryset_length,
-            'dig': dig / queryset_length,
-        }
-        return results

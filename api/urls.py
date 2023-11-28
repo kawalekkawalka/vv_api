@@ -1,6 +1,6 @@
 from django.urls import re_path
 
-from api import views
+from api.views import views, performance_views
 from rest_framework import routers
 from django.conf.urls import include
 
@@ -11,7 +11,7 @@ router.register(r'users', views.UserViewset)
 router.register(r'members', views.MemberViewset)
 router.register(r'comments', views.CommentViewset)
 router.register(r'team-invitations', views.TeamInvitationViewset)
-router.register(r'match-performances', views.MatchPerformanceViewset)
+router.register(r'match-performances', performance_views.MatchPerformanceViewset)
 router.register(r'matches', views.MatchViewset, basename='Match')
 
 urlpatterns = [
