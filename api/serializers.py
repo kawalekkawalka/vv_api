@@ -178,7 +178,7 @@ class TeamInvitationSerializer(serializers.ModelSerializer):
 
 
 class MatchPerformanceSerializer(serializers.ModelSerializer):
-    player = PlayerSerializer(many=False)
+    player = serializers.SerializerMethodField()
     match = MatchSerializer(many=False)
     team = TeamSerializer(many=False)
     total_score = serializers.SerializerMethodField()
@@ -194,6 +194,10 @@ class MatchPerformanceSerializer(serializers.ModelSerializer):
                   'reception', 'positive_reception', 'reception_error', 'positive_reception_percentage', 'spike',
                   'spike_point', 'spike_block', 'spike_error', 'spike_kill_percentage', 'spike_efficiency',
                   'block_amount', 'dig',)
+
+    def get_player(self, obj):
+        player = PlayerSerializer(obj.player)
+        return player.data
 
     def get_total_score(self, obj):
         return obj.serve_ace + obj.spike_point + obj.block_amount
