@@ -60,6 +60,9 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
         if player_id is not None:
             queryset = MatchPerformance.objects.all()
             queryset = queryset.filter(player=player_id)
+            if not queryset.exists():
+                response = {'message': 'Player has no performances'}
+                return Response(response, status=status.HTTP_200_OK)
             queryset = queryset.order_by("-match__time")
 
             performances_amount = self.request.query_params.get('amount')
@@ -100,9 +103,16 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
 
         total_score = spike_point + serve_ace + block_amount
         total_score_balance = total_score - serve_error - reception_error - spike_error - spike_block
-        positive_reception_percentage = round((positive_reception / reception) * 100)
-        spike_kill_percentage = round((spike_point / spike) * 100)
-        spike_efficiency = round(((spike_point - spike_error - spike_block) / spike) * 100)
+        if reception:
+            positive_reception_percentage = round((positive_reception / reception) * 100)
+        else:
+            positive_reception_percentage = 0
+        if spike:
+            spike_kill_percentage = round((spike_point / spike) * 100)
+            spike_efficiency = round(((spike_point - spike_error - spike_block) / spike) * 100)
+        else:
+            spike_kill_percentage = 0
+            spike_efficiency = 0
 
         results = {
             'total_score': round(total_score / divider, 2),
