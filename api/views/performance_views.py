@@ -5,8 +5,29 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from api.models import MatchPerformance
-from api.serializers import MatchPerformanceSerializer
+from api.models import MatchPerformance, Player
+from api.serializers import MatchPerformanceSerializer, PlayerSerializer
+
+
+EMPTY_RESULTS = {
+    'total_score': 0,
+    'total_score_balance': 0,
+    'serve': 0,
+    'serve_error': 0,
+    'serve_ace': 0,
+    'reception': 0,
+    'positive_reception': 0,
+    'reception_error': 0,
+    'positive_reception_percentage': 0,
+    'spike': 0,
+    'spike_point': 0,
+    'spike_block': 0,
+    'spike_error': 0,
+    'spike_kill_percentage': 0,
+    'spike_efficiency': 0,
+    'block_amount': 0,
+    'dig': 0,
+}
 
 
 class MatchPerformanceViewset(viewsets.ModelViewSet):
@@ -57,11 +78,16 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False)
     def get_avg_player_performance(self, request):
         player_id = self.request.query_params.get('player')
+        team_id = self.request.query_params.get('team')
         if player_id is not None:
-            queryset = MatchPerformance.objects.all()
-            queryset = queryset.filter(player=player_id)
+            player = Player.objects.get(id=player_id)
+            if team_id is not None:
+                queryset = MatchPerformance.objects.filter(player=player, team=team_id)
+            else:
+                queryset = MatchPerformance.objects.filter(player=player)
             if not queryset.exists():
-                response = {'message': 'Player has no performances'}
+                response = {'message': 'Player has no performances', 'results': EMPTY_RESULTS, 'set_amount': 0,
+                            'player': PlayerSerializer(player).data}
                 return Response(response, status=status.HTTP_200_OK)
             queryset = queryset.order_by("-match__time")
 
@@ -72,7 +98,8 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
             set_amount = self.count_sets(queryset)
             results = self.calculate_avg(queryset, set_amount)
 
-            response = {'message': 'Successfully calculated', 'results': results, 'set_amount': set_amount}
+            response = {'message': 'Successfully calculated', 'results': results, 'set_amount': set_amount,
+                        'player': PlayerSerializer(player).data}
             return Response(response, status=status.HTTP_200_OK)
         else:
             response = {'message': 'Wrong params'}
