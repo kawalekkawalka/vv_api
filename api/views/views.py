@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -163,6 +164,16 @@ class TeamViewset(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
+    def get_queryset(self):
+        queryset = Team.objects.all()
+
+        player_id = self.request.query_params.get('player')
+        if player_id is not None:
+            player = get_object_or_404(Player, id=player_id)
+            queryset = queryset.filter(players__id=player.id)
+
+        return queryset
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = TeamFullSerializer(instance, many=False, context={'request': request})
@@ -185,6 +196,7 @@ class MatchViewset(viewsets.ModelViewSet):
         team_id = self.request.query_params.get('team')
         if team_id is not None:
             queryset = queryset.filter(Q(team1=team_id) | Q(team2=team_id))
+
 
         time = self.request.query_params.get('time')
         if time is not None:
