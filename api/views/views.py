@@ -206,6 +206,10 @@ class MatchViewset(viewsets.ModelViewSet):
         if team_id is not None:
             queryset = queryset.filter(Q(team1=team_id) | Q(team2=team_id))
 
+        player_id = self.request.query_params.get('player')
+        if player_id is not None:
+            team_ids = Team.objects.filter(players__id=player_id).values_list('id', flat=True)
+            queryset = queryset.filter(Q(team1__in=team_ids) | Q(team2__in=team_ids))
 
         time = self.request.query_params.get('time')
         if time is not None:
