@@ -125,6 +125,23 @@ class TeamFullSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
+class TeamPlayerSerializer(serializers.ModelSerializer):
+    date_joined = serializers.SerializerMethodField()
+    date_left = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Team
+        fields = ('id', 'name', 'description', 'date_joined', 'date_left')
+
+    def get_date_joined(self, obj):
+        player_membership = PlayerMembership.objects.get(player=self.context['player_id'], team=obj.id)
+        return player_membership.date_joined
+
+    def get_date_left(self, obj):
+        player_membership = PlayerMembership.objects.get(player=self.context['player_id'], team=obj.id)
+        return player_membership.date_left
+
+
 class MatchSerializer(serializers.ModelSerializer):
     team1_name = serializers.SerializerMethodField()
     team2_name = serializers.SerializerMethodField()

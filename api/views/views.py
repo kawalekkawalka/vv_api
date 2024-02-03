@@ -13,7 +13,7 @@ from django.db.models import Q
 from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation
 from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
     ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer, \
-    MatchFullSerializer, PlayerFullSerializer
+    MatchFullSerializer, PlayerFullSerializer, TeamPlayerSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -166,13 +166,22 @@ class TeamViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Team.objects.all()
-
         player_id = self.request.query_params.get('player')
         if player_id is not None:
             player = get_object_or_404(Player, id=player_id)
             queryset = queryset.filter(players__id=player.id)
-
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = Team.objects.all()
+        player_id = self.request.query_params.get('player')
+        if player_id is not None:
+            player = get_object_or_404(Player, id=player_id)
+            queryset = queryset.filter(players__id=player.id)
+            serializer = TeamPlayerSerializer(queryset, many=True, context={'player_id': player_id})
+        else:
+            serializer = TeamSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
