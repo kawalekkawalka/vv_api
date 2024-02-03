@@ -128,3 +128,37 @@ class MatchPerformance(models.Model):
 
     class Meta:
         unique_together = (('player', 'match'),)
+
+
+class PlayerRecords(models.Model):
+    player = models.OneToOneField(Player, on_delete=models.CASCADE)
+    serve = models.PositiveSmallIntegerField(default=0)
+    serve_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,related_name='serve_matches')
+    serve_error = models.PositiveSmallIntegerField(default=0)
+    serve_error_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                          related_name='serve_error_matches')
+    serve_ace = models.PositiveSmallIntegerField(default=0)
+    serve_ace_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='serve_ace_matches')
+    reception = models.PositiveSmallIntegerField(default=0)
+    reception_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='reception_matches')
+    positive_reception = models.PositiveSmallIntegerField(default=0)
+    positive_reception_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                                 related_name='positive_reception_matches')
+    reception_error = models.PositiveSmallIntegerField(default=0)
+    reception_error_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                              related_name='reception_error_matches')
+    spike = models.PositiveSmallIntegerField(default=0)
+    spike_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='spike_matches')
+    spike_point = models.PositiveSmallIntegerField(default=0)
+    spike_point_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                          related_name='spike_point_matches')
+    block_amount = models.PositiveSmallIntegerField(default=0)
+    block_amount_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                           related_name='block_amount_matches')
+    dig = models.PositiveSmallIntegerField(default=0)
+    dig_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name='dig_matches')
+

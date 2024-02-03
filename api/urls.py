@@ -13,6 +13,7 @@ router.register(r'comments', views.CommentViewset)
 router.register(r'team-invitations', views.TeamInvitationViewset)
 router.register(r'match-performances', performance_views.MatchPerformanceViewset)
 router.register(r'matches', views.MatchViewset, basename='Match')
+router.register(r'player-records', views.PlayerRecordsViewset)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),

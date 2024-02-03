@@ -5,9 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from api.models import MatchPerformance, Player
-from api.serializers import MatchPerformanceSerializer, PlayerSerializer
-
+from api.models import MatchPerformance, Player, PlayerRecords
+from api.serializers.serializers import PlayerSerializer
+from api.serializers.match_performance_serializers import MatchPerformanceSerializer, MatchPerformanceCreateSerializer
 
 EMPTY_RESULTS = {
     'total_score': 0,
@@ -105,6 +105,14 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
             response = {'message': 'Wrong params'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+    def create(self, request, *args, **kwargs):
+        serializer = MatchPerformanceCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            self.update_player_record(performance=serializer.validated_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def count_sets(self, queryset):
         set_amount = 0
         for performance in queryset:
@@ -162,3 +170,50 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
         }
 
         return results
+
+    def update_player_record(self, performance):
+        player_record = PlayerRecords.objects.filter(player=performance.get('player')).first()
+        match = performance.get('match')
+        if not player_record:
+            player_record = PlayerRecords.objects.create(player=performance.get('player'))
+        if performance.get('serve', 0) > player_record.serve:
+            player_record.serve = performance['serve']
+            player_record.serve_match = match
+
+        if performance.get('serve_error', 0) > player_record.serve_error:
+            player_record.serve_error = performance['serve_error']
+            player_record.serve_error_match = match
+
+        if performance.get('serve_ace', 0) > player_record.serve_ace:
+            player_record.serve_ace = performance['serve_ace']
+            player_record.serve_ace_match = match
+
+        if performance.get('reception', 0) > player_record.reception:
+            player_record.reception = performance['reception']
+            player_record.reception_match = match
+
+        if performance.get('positive_reception', 0) > player_record.positive_reception:
+            player_record.positive_reception = performance['positive_reception']
+            player_record.positive_reception_match = match
+
+        if performance.get('reception_error', 0) > player_record.reception_error:
+            player_record.reception_error = performance['reception_error']
+            player_record.reception_error_match = match
+
+        if performance.get('spike', 0) > player_record.spike:
+            player_record.spike = performance['spike']
+            player_record.spike_match = match
+
+        if performance.get('spike_point', 0) > player_record.spike_point:
+            player_record.spike_point = performance['spike_point']
+            player_record.spike_point_match = match
+
+        if performance.get('block_amount', 0) > player_record.block_amount:
+            player_record.block_amount = performance['block_amount']
+            player_record.block_amount_match = match
+
+        if performance.get('dig', 0) > player_record.dig:
+            player_record.dig = performance['dig']
+            player_record.dig_match = match
+
+        player_record.save()

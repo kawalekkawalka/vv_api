@@ -10,8 +10,9 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
-from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation
-from api.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment, Match, TeamInvitation, PlayerRecords
+from api.serializers.player_records_serializers import PlayerRecordsSerializer
+from api.serializers.serializers import PlayerSerializer, TeamSerializer, TeamFullSerializer, UserSerializer, UserProfileSerializer, \
     ChangePasswordSerializer, MemberSerializer, CommentSerializer, MatchSerializer, TeamInvitationSerializer, \
     MatchFullSerializer, PlayerFullSerializer, TeamPlayerSerializer
 from rest_framework.authentication import TokenAuthentication
@@ -137,7 +138,6 @@ class MemberViewset(viewsets.ModelViewSet):
             serializer = MemberSerializer(member, many=False)
             response = {'message': 'Added to team', 'results': serializer.data}
             return Response(response, status=status.HTTP_201_CREATED)
-
 
         else:
             response = {'message': 'Wrong parameters'}
@@ -280,3 +280,14 @@ class TeamInvitationViewset(viewsets.ModelViewSet):
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
+class PlayerRecordsViewset(viewsets.ModelViewSet):
+    queryset = PlayerRecords.objects.all()
+    serializer_class = PlayerRecordsSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        player_id = self.request.query_params.get('player')
+        if player_id is not None:
+            return PlayerRecords.objects.filter(player=player_id)
+        return PlayerRecords.objects.all()

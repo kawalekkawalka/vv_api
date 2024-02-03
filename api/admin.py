@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation, MatchPerformance
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation, MatchPerformance, \
+    PlayerRecords
 
 
 class PlayerMembershipInline(admin.TabularInline):
@@ -63,3 +64,16 @@ class MatchPerformanceAdmin(admin.ModelAdmin):
     list_display = ('id', 'player', 'match', 'team', 'set1_position', 'set2_position', 'set3_position', 'set4_position'
                     , 'set5_position', 'serve', 'serve_error', 'serve_ace', 'reception', 'positive_reception',
                     'reception_error', 'spike', 'spike_point', 'spike_block', 'spike_error', 'block_amount', 'dig',)
+
+
+@admin.register(PlayerRecords)
+class PlayerRecordsAdmin(admin.ModelAdmin):
+    fields = ('player', 'serve', 'serve_match', 'serve_error', 'serve_error_match', 'serve_ace', 'serve_ace_match',
+              'reception', 'reception_match', 'positive_reception', 'positive_reception_match', 'reception_error',
+              'reception_error_match', 'spike', 'spike_match', 'spike_point', 'spike_point_match', 'block_amount',
+              'block_amount_match', 'dig', 'dig_match',)
+
+    list_display = ('id', 'player', 'serve', 'serve_match', 'serve_error', 'serve_error_match', 'serve_ace',
+                    'serve_ace_match', 'reception', 'reception_match', 'positive_reception', 'positive_reception_match',
+                    'reception_error', 'reception_error_match', 'spike', 'spike_match', 'spike_point',
+                    'spike_point_match', 'block_amount', 'block_amount_match', 'dig', 'dig_match',)
