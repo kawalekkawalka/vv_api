@@ -84,13 +84,13 @@ class Match(models.Model):
     set1_team1_score = models.PositiveSmallIntegerField(default=0)
     set2_team1_score = models.PositiveSmallIntegerField(default=0)
     set3_team1_score = models.PositiveSmallIntegerField(default=0)
-    set4_team1_score = models.PositiveSmallIntegerField(default=0)
-    set5_team1_score = models.PositiveSmallIntegerField(default=0)
+    set4_team1_score = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
+    set5_team1_score = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
     set1_team2_score = models.PositiveSmallIntegerField(default=0)
     set2_team2_score = models.PositiveSmallIntegerField(default=0)
     set3_team2_score = models.PositiveSmallIntegerField(default=0)
-    set4_team2_score = models.PositiveSmallIntegerField(default=0)
-    set5_team2_score = models.PositiveSmallIntegerField(default=0)
+    set4_team2_score = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
+    set5_team2_score = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
 
     def __str__(self):
         return str(self.team1) + ' vs ' + str(self.team2)

@@ -219,9 +219,23 @@ class MatchViewset(viewsets.ModelViewSet):
             if time == "future":
                 queryset = queryset.filter(time__gte=actual_time).order_by('time')
 
-        match_amount = int(self.request.query_params.get('amount', default=5))
-        queryset = queryset[:match_amount]
+        match_amount = int(self.request.query_params.get('amount', 0))
+        if match_amount:
+            queryset = queryset[:match_amount]
         return queryset
+
+    @action(methods=['GET'], detail=False)
+    def get_match_participants(self, request):
+        match_id = self.request.query_params.get('match')
+        if match_id is not None:
+            match = Match.objects.get(id=match_id)
+            players = set()
+            for team in (match.team1, match.team2):
+                players.update(team.players.all())
+            return Response(PlayerSerializer(players, many=True).data, status=status.HTTP_200_OK)
+        else:
+            response = {'message': 'Wrong params'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomObtainAuthToken(ObtainAuthToken):
