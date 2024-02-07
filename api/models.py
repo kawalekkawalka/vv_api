@@ -105,14 +105,23 @@ class TeamInvitation(models.Model):
 
 
 class MatchPerformance(models.Model):
+    CHOICES = [
+        (1, 'Position 1'),
+        (2, 'Position 2'),
+        (3, 'Position 3'),
+        (4, 'Position 4'),
+        (5, 'Position 5'),
+        (6, 'Position 6'),
+        (7, 'Libero'),
+        (8, 'Substitution')]
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    set1_position = models.PositiveSmallIntegerField(null=True, blank=True)
-    set2_position = models.PositiveSmallIntegerField(null=True, blank=True)
-    set3_position = models.PositiveSmallIntegerField(null=True, blank=True)
-    set4_position = models.PositiveSmallIntegerField(null=True, blank=True)
-    set5_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    set1_position = models.PositiveSmallIntegerField(null=True, blank=True, choices=CHOICES)
+    set2_position = models.PositiveSmallIntegerField(null=True, blank=True, choices=CHOICES)
+    set3_position = models.PositiveSmallIntegerField(null=True, blank=True, choices=CHOICES)
+    set4_position = models.PositiveSmallIntegerField(null=True, blank=True, choices=CHOICES)
+    set5_position = models.PositiveSmallIntegerField(null=True, blank=True, choices=CHOICES)
     serve = models.PositiveSmallIntegerField(default=0)
     serve_error = models.PositiveSmallIntegerField(default=0)
     serve_ace = models.PositiveSmallIntegerField(default=0)

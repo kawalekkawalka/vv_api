@@ -51,8 +51,8 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
         if match_id is not None:
             queryset = queryset.filter(match=match_id)
 
-        match_performances_amount = int(self.request.query_params.get('amount', default=100))
-        queryset = queryset[:match_performances_amount]
+        # match_performances_amount = int(self.request.query_params.get('amount', default=100))
+        # queryset = queryset[:match_performances_amount]
         return queryset
 
     @action(methods=['GET'], detail=False)
@@ -106,12 +106,29 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
-        serializer = MatchPerformanceCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            self.update_player_record(performance=serializer.validated_data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        for data in request.data:
+            serializer = MatchPerformanceCreateSerializer(data=data)
+            data = serializer.initial_data
+            existing_object = MatchPerformance.objects.filter(
+                player=data.get('player'),
+                match=data.get('match')
+            ).first()
+
+            if existing_object:
+                serializer_existing = MatchPerformanceCreateSerializer(existing_object, data=data)
+                if serializer_existing.is_valid():
+                    serializer_existing.save()
+                    self.update_player_record(performance=serializer_existing.validated_data)
+                else:
+                    return Response(serializer_existing.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                if serializer.is_valid():
+                    serializer.save()
+                    self.update_player_record(performance=serializer.validated_data)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response('Performances successfully added', status=status.HTTP_200_OK)
+
 
     def count_sets(self, queryset):
         set_amount = 0
@@ -121,6 +138,7 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
                 if getattr(performance, set_position_attr, None):
                     set_amount += 1
         return set_amount
+
 
     def calculate_avg(self, queryset, divider):
         serve = queryset.aggregate(Sum('serve'))['serve__sum']
@@ -170,6 +188,7 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
         }
 
         return results
+
 
     def update_player_record(self, performance):
         player_record = PlayerRecords.objects.filter(player=performance.get('player')).first()
