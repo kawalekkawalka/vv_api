@@ -196,6 +196,14 @@ class TeamViewset(viewsets.ModelViewSet):
         PlayerMembership.objects.create(player=player, team=team)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user.id == instance.owner.id:
+            self.perform_destroy(instance)
+        else:
+            return Response('You are not owner of the team', status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class MatchViewset(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
