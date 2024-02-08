@@ -188,6 +188,14 @@ class TeamViewset(viewsets.ModelViewSet):
         serializer = TeamFullSerializer(instance, many=False, context={'request': request})
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        team = serializer.save()
+        player = UserProfile.objects.get(user_id=request.user.id).player
+        PlayerMembership.objects.create(player=player, team=team)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class MatchViewset(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
