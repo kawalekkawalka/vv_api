@@ -71,3 +71,11 @@ class MatchViewset(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'message': f'Error: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(MatchSerializer(match).data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user.id == instance.team1.owner.id or request.user.id == instance.team2.owner.id:
+            self.perform_destroy(instance)
+        else:
+            return Response({'message': 'You are not owner of the match'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Successfully deleted'}, status=status.HTTP_200_OK)
