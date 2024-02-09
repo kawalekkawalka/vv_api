@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation, MatchPerformance, \
-    PlayerRecords
+    PlayerRecords, UserFriendship, UserFriendshipInvitation
 
 
 class PlayerMembershipInline(admin.TabularInline):
@@ -77,3 +77,15 @@ class PlayerRecordsAdmin(admin.ModelAdmin):
                     'serve_ace_match', 'reception', 'reception_match', 'positive_reception', 'positive_reception_match',
                     'reception_error', 'reception_error_match', 'spike', 'spike_match', 'spike_point',
                     'spike_point_match', 'block_amount', 'block_amount_match', 'dig', 'dig_match',)
+
+
+@admin.register(UserFriendship)
+class UserFriendshipAdmin(admin.ModelAdmin):
+    fields = ('user1', 'user2')
+    list_display = ('user1', 'user2')
+
+
+@admin.register(UserFriendshipInvitation)
+class UserFriendshipInvitationAdmin(admin.ModelAdmin):
+    fields = ('inviter', 'invitee')
+    list_display = ('inviter', 'invitee')

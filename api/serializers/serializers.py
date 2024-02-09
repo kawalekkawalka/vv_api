@@ -1,7 +1,9 @@
+from django.db.models import Q
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation
+from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Match, TeamInvitation, UserFriendship, \
+    UserFriendshipInvitation
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -14,17 +16,39 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 class PlayerFullSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    friends = serializers.SerializerMethodField()
 
     class Meta:
         model = Player
-        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo', 'comments')
+        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo', 'comments',
+                  'user', 'friends')
         extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
-                        'year_of_birth': {'required': False}, 'position': {'required': False}}
+                        'year_of_birth': {'required': False}, 'position': {'required': False},}
 
     def get_comments(self, obj):
         comments = Comment.objects.filter(object_id=obj.id, content_type=8)
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
+
+    def get_user(self, obj):
+        try:
+            return obj.player_profile.user.id
+        except:
+            return None
+
+    def get_friends(self, obj):
+        try:
+            friends = set()
+            friendships = UserFriendship.objects.filter(
+                Q(user1=obj.player_profile.user.id) | Q(user2=obj.player_profile.user.id)).values_list('user1', 'user2')
+            for friendship in friendships:
+                friends.add(friendship[0])
+                friends.add(friendship[1])
+            friends.remove(obj.player_profile.user.id)
+            return friends
+        except:
+            return []
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -184,3 +208,31 @@ class TeamInvitationSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'team')
 
 
+class UserFriendshipSerializer(serializers.ModelSerializer):
+    player1 = serializers.SerializerMethodField()
+    player2 = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserFriendship
+        fields = ('user1', 'user2', 'player1', 'player2')
+
+    def get_player1(self, obj):
+        return PlayerSerializer(obj.user1.profile.player, many=False).data
+
+    def get_player2(self, obj):
+        return PlayerSerializer(obj.user2.profile.player, many=False).data
+
+
+class UserFriendshipInvitationSerializer(serializers.ModelSerializer):
+    player1 = serializers.SerializerMethodField()
+    player2 = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserFriendshipInvitation
+        fields = ('inviter', 'invitee', 'player1', 'player2')
+
+    def get_player1(self, obj):
+        return PlayerSerializer(obj.inviter.profile.player, many=False).data
+
+    def get_player2(self, obj):
+        return PlayerSerializer(obj.invitee.profile.player, many=False).data

@@ -171,3 +171,18 @@ class PlayerRecords(models.Model):
     dig_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
                                   related_name='dig_matches')
 
+
+class UserFriendship(models.Model):
+    user1 = models.ForeignKey(User, related_name='user1_friendships', on_delete=models.CASCADE)
+    user2 = models.ForeignKey(User, related_name='user2_friendships',  on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user1', 'user2'),)
+
+
+class UserFriendshipInvitation(models.Model):
+    inviter = models.ForeignKey(User, related_name='invitations', on_delete=models.CASCADE)
+    invitee = models.ForeignKey(User, related_name='invited_users',  on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('inviter', 'invitee'),)

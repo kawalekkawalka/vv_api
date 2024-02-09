@@ -14,6 +14,8 @@ router.register(r'team-invitations', views.TeamInvitationViewset)
 router.register(r'match-performances', performance_views.MatchPerformanceViewset)
 router.register(r'matches', match_views.MatchViewset, basename='Match')
 router.register(r'player-records', views.PlayerRecordsViewset)
+router.register(r'user-friendships', views.UserFriendshipViewset)
+router.register(r'user-friendship-invitations', views.UserFriendshipInvitationViewset)
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),

@@ -1,5 +1,5 @@
 from datetime import date
-
+from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import viewsets, status
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -7,11 +7,12 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from api.models import Player, Team, UserProfile, PlayerMembership, Comment, TeamInvitation, PlayerRecords
+from api.models import Player, Team, UserProfile, PlayerMembership, Comment, TeamInvitation, PlayerRecords, \
+    UserFriendship, UserFriendshipInvitation
 from api.serializers.player_records_serializers import PlayerRecordsSerializer
 from api.serializers.serializers import PlayerSerializer, UserSerializer, UserProfileSerializer, \
     ChangePasswordSerializer, MemberSerializer, CommentSerializer, TeamInvitationSerializer, \
-    PlayerFullSerializer
+    PlayerFullSerializer, UserFriendshipSerializer, UserFriendshipInvitationSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
@@ -222,3 +223,59 @@ class PlayerRecordsViewset(viewsets.ModelViewSet):
         if player_id is not None:
             return PlayerRecords.objects.filter(player=player_id)
         return PlayerRecords.objects.all()
+
+
+class UserFriendshipViewset(viewsets.ModelViewSet):
+    queryset = UserFriendship.objects.all()
+    serializer_class = UserFriendshipSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            user1 = User.objects.get(id=request.data['user1'])
+            user2 = User.objects.get(id=request.data['user2'])
+            if user1 == user2:
+                return Response({'message': 'Users have to be unique'}, status=status.HTTP_400_BAD_REQUEST)
+
+            existing_friendship = UserFriendship.objects.filter(
+                (Q(user1=user1, user2=user2) | Q(user1=user2, user2=user1))
+            ).first()
+            if existing_friendship:
+                return Response({'message': 'Friendship already exist'}, status=status.HTTP_200_OK)
+
+            UserFriendship.objects.create(user1=user1, user2=user2)
+            return Response({'message': 'Friendship created'}, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({'message': 'Provided users not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserFriendshipInvitationViewset(viewsets.ModelViewSet):
+    queryset = UserFriendshipInvitation.objects.all()
+    serializer_class = UserFriendshipInvitationSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            inviter = User.objects.get(id=request.data['inviter'])
+            invitee = User.objects.get(id=request.data['invitee'])
+            if inviter == invitee:
+                return Response({'message': 'Users have to be unique'}, status=status.HTTP_400_BAD_REQUEST)
+            existing_friendship = UserFriendship.objects.filter(
+                (Q(user1=inviter, user2=invitee) | Q(user1=invitee, user2=inviter))
+            ).first()
+            if existing_friendship:
+                return Response({'message': 'Friendship already exist'}, status=status.HTTP_200_OK)
+            if UserFriendshipInvitation.objects.filter(inviter=inviter, invitee=invitee).first():
+                return Response({'message': 'Invitation already sent'}, status=status.HTTP_200_OK)
+            if UserFriendshipInvitation.objects.filter(inviter=invitee, invitee=inviter).first():
+                UserFriendship.objects.create(user1=inviter, user2=invitee)
+                return Response({'message': 'Invitee already invited you. Friendship created'}, status=status.HTTP_201_CREATED)
+
+            UserFriendshipInvitation.objects.create(inviter=inviter, invitee=invitee)
+            return Response({'message': 'Invitation sent'}, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({'message': 'Provided users not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({'message': 'Bad request'}, status=status.HTTP_400_BAD_REQUEST)
