@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets, status
@@ -6,8 +8,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from api.models import Match, Team
+from api.models import Match, Team, UserFriendship, Player
 from api.serializers.serializers import MatchSerializer, MatchFullSerializer, PlayerSerializer
+from django.contrib.auth.models import User
 
 
 class MatchViewset(viewsets.ModelViewSet):
@@ -57,6 +60,47 @@ class MatchViewset(viewsets.ModelViewSet):
         else:
             response = {'message': 'Wrong params'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['GET'], detail=False)
+    def get_user_friends_matches(self, request):
+        try:
+            user = User.objects.get(id=self.request.query_params.get('user'))
+            friendships = UserFriendship.objects.filter(
+                Q(user1=user.id) | Q(user2=user.id)
+            ).select_related('user1__profile__player', 'user2__profile__player')
+            friends = {f.user1.profile.player_id: f.user1.profile.player for f in friendships} | \
+                      {f.user2.profile.player_id: f.user2.profile.player for f in friendships}
+            friends.pop(user.profile.player_id)
+
+            now = datetime.now(timezone.utc)
+            if self.request.query_params.get('time') == 'past':
+                friends_matches = [
+                    {
+                        'match': MatchSerializer(Match.objects.filter(
+                            Q(team1__players=friend) | Q(team2__players=friend),
+                            time__lte=now,
+                        ).order_by('-time').first()).data,
+                        'player': PlayerSerializer(friend).data
+                    } for friend in friends.values()
+                ]
+            else:
+                friends_matches = [
+                    {
+                        'match': MatchSerializer(match).data,
+                        'player': PlayerSerializer(friend).data
+                    }
+                    for friend in friends.values()
+                    if (match := Match.objects.filter(
+                        Q(team1__players=friend) | Q(team2__players=friend),
+                        time__gte=now,
+                    ).order_by('time').first())
+                ]
+
+            return Response(friends_matches, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': 'User not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({'message': 'User has no friends'}, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         try:
