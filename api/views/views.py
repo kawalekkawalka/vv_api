@@ -50,10 +50,20 @@ class PlayerViewset(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
+    def get_queryset(self):
+        queryset = Player.objects.all()
+        order = self.request.query_params.get('order')
+        if order == 'desc':
+            queryset = queryset.order_by('-id')
+        player_amount = int(self.request.query_params.get('amount', 0))
+        if player_amount:
+            queryset = queryset[:player_amount]
+        return queryset
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = PlayerFullSerializer(instance, many=False, context={'request': request})
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewset(viewsets.ModelViewSet):

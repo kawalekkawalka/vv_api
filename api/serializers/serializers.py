@@ -7,11 +7,19 @@ from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Mat
 
 
 class PlayerSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
+
     class Meta:
         model = Player
         fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo')
         extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
                         'year_of_birth': {'required': False}, 'position': {'required': False}}
+
+    def get_photo(self, obj):
+        try:
+            return obj.get_photo_url
+        except KeyError:
+            return None
 
 
 class PlayerFullSerializer(serializers.ModelSerializer):

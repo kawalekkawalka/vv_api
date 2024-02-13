@@ -43,6 +43,10 @@ class MatchViewset(viewsets.ModelViewSet):
             if time == "future":
                 queryset = queryset.filter(time__gte=actual_time).order_by('time')
 
+        order = self.request.query_params.get('order')
+        if order == 'desc':
+            queryset = queryset.order_by('-id')
+
         match_amount = int(self.request.query_params.get('amount', 0))
         if match_amount:
             queryset = queryset[:match_amount]

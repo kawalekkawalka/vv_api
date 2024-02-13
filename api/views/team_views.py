@@ -20,16 +20,28 @@ class TeamViewset(viewsets.ModelViewSet):
         if player_id is not None:
             player = get_object_or_404(Player, id=player_id)
             queryset = queryset.filter(players__id=player.id)
+        team_amount = int(self.request.query_params.get('amount', 0))
+        if team_amount:
+            queryset = queryset[:team_amount]
         return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = Team.objects.all()
         player_id = self.request.query_params.get('player')
+        team_amount = int(self.request.query_params.get('amount', 0))
         if player_id is not None:
             player = get_object_or_404(Player, id=player_id)
             queryset = queryset.filter(players__id=player.id)
+            if team_amount:
+                queryset = queryset[:team_amount]
             serializer = TeamPlayerSerializer(queryset, many=True, context={'player_id': player_id})
         else:
+            order = self.request.query_params.get('order')
+            if order == 'desc':
+                queryset = queryset.order_by('-id')
+            team_amount = int(self.request.query_params.get('amount', 0))
+            if team_amount:
+                queryset = queryset[:team_amount]
             serializer = TeamSerializer(queryset, many=True)
         return Response(serializer.data)
 
