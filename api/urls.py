@@ -20,5 +20,4 @@ router.register(r'user-friendship-invitations', views.UserFriendshipInvitationVi
 urlpatterns = [
     re_path(r'^', include(router.urls)),
     re_path('authenticate/', views.CustomObtainAuthToken.as_view())
-
 ]

@@ -47,7 +47,7 @@ class TeamViewset(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = TeamFullSerializer(instance, many=False, context={'request': request})
+        serializer = TeamFullSerializer(instance, many=False)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):

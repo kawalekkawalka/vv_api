@@ -16,10 +16,10 @@ def upload_path_handler(instance, filename):
 class Player(models.Model):
     POSITIONS = [
         ("L", "Libero"),
-        ("S", "Rozgrywający"),
-        ("OH", "Przyjmujący"),
-        ("OP", "Atakujący"),
-        ("MB", "Środkowy"),
+        ("S", "Setter"),
+        ("OH", "Outside hitter"),
+        ("OP", "Opposite hitter"),
+        ("MB", "Middle blocker"),
     ]
     name = models.CharField(max_length=32)
     surname = models.CharField(max_length=32)

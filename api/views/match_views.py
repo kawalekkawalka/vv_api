@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from api.models import Match, Team, UserFriendship, Player
@@ -52,18 +52,18 @@ class MatchViewset(viewsets.ModelViewSet):
             queryset = queryset[:match_amount]
         return queryset
 
-    @action(methods=['GET'], detail=False)
+    @action(methods=['GET'], detail=False, permission_classes=(AllowAny,))
     def get_match_participants(self, request):
-        match_id = self.request.query_params.get('match')
-        if match_id is not None:
-            match = Match.objects.get(id=match_id)
+        try:
+            match = Match.objects.get(id=self.request.query_params.get('match'))
             players = set()
             for team in (match.team1, match.team2):
                 players.update(team.players.all())
             return Response(PlayerSerializer(players, many=True).data, status=status.HTTP_200_OK)
-        else:
+        except (Match.DoesNotExist, ValueError):
             response = {'message': 'Wrong params'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(methods=['GET'], detail=False)
     def get_user_friends_matches(self, request):
@@ -106,6 +106,7 @@ class MatchViewset(viewsets.ModelViewSet):
         except KeyError:
             return Response({'message': 'User has no friends'}, status=status.HTTP_200_OK)
 
+
     def create(self, request, *args, **kwargs):
         try:
             team1 = Team.objects.get(name=request.data['team1'])
@@ -113,12 +114,13 @@ class MatchViewset(viewsets.ModelViewSet):
             if team1 != team2:
                 match = Match.objects.create(team1=team1, team2=team2, time=request.data['time'])
             else:
-                return Response({'message': 'Provided same team two times'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Teams have to be unique'}, status=status.HTTP_400_BAD_REQUEST)
         except Team.DoesNotExist:
             return Response({'message': 'One or both teams do not exist'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'message': f'Error: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(MatchSerializer(match).data, status=status.HTTP_201_CREATED)
+
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

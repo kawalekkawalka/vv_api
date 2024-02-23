@@ -72,25 +72,6 @@ class CommentViewset(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get_queryset(self):
-        queryset = Comment.objects.all()
-
-        player_id = self.request.query_params.get('player')
-        if player_id is not None:
-            queryset = queryset.filter(player=player_id)
-
-        team_id = self.request.query_params.get('team')
-        if team_id is not None:
-            queryset = queryset.filter(team=team_id)
-
-        match_id = self.request.query_params.get('match')
-        if match_id is not None:
-            queryset = queryset.filter(match=match_id)
-
-        match_performances_amount = int(self.request.query_params.get('amount', default=100))
-        queryset = queryset[:match_performances_amount]
-        return queryset
-
     def create(self, request, *args, **kwargs):
         data = request.data
         content_type_name = data.get('content_type')
@@ -196,13 +177,10 @@ class TeamInvitationViewset(viewsets.ModelViewSet):
             return Response(response, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        queryset = TeamInvitation.objects.all()
-
         team_id = self.request.query_params.get('team')
         if team_id is not None:
-            queryset = queryset.filter(team=team_id)
-
-        return queryset
+            return TeamInvitation.objects.filter(team=team_id)
+        return TeamInvitation.objects.all()
 
     def destroy(self, request, *args, **kwargs):
         response = {'message': 'Method not allowed'}
@@ -316,18 +294,16 @@ class UserFriendshipInvitationViewset(viewsets.ModelViewSet):
             invitee = User.objects.get(id=request.data['invitee'])
             if inviter == invitee:
                 return Response({'message': 'Users have to be unique'}, status=status.HTTP_400_BAD_REQUEST)
-            existing_friendship = UserFriendship.objects.filter(
-                (Q(user1=inviter, user2=invitee) | Q(user1=invitee, user2=inviter))
-            ).first()
-            if existing_friendship:
+            if UserFriendship.objects.filter((Q(user1=inviter, user2=invitee) | Q(user1=invitee, user2=inviter))).first():
                 return Response({'message': 'Friendship already exist'}, status=status.HTTP_200_OK)
             if UserFriendshipInvitation.objects.filter(inviter=inviter, invitee=invitee).first():
                 return Response({'message': 'Invitation already sent'}, status=status.HTTP_200_OK)
-            if UserFriendshipInvitation.objects.filter(inviter=invitee, invitee=inviter).first():
+            invitee_invitation = UserFriendshipInvitation.objects.filter(inviter=invitee, invitee=inviter).first()
+            if invitee_invitation:
                 UserFriendship.objects.create(user1=inviter, user2=invitee)
+                invitee_invitation.delete()
                 return Response({'message': 'Invitee already invited you. Friendship created'},
                                 status=status.HTTP_201_CREATED)
-
             UserFriendshipInvitation.objects.create(inviter=inviter, invitee=invitee)
             return Response({'message': 'Invitation sent'}, status=status.HTTP_201_CREATED)
         except User.DoesNotExist:
