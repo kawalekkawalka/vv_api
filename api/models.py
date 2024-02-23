@@ -142,7 +142,8 @@ class MatchPerformance(models.Model):
 class PlayerRecords(models.Model):
     player = models.OneToOneField(Player, on_delete=models.CASCADE)
     serve = models.PositiveSmallIntegerField(default=0)
-    serve_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,related_name='serve_matches')
+    serve_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='serve_matches')
     serve_error = models.PositiveSmallIntegerField(default=0)
     serve_error_match = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True, blank=True,
                                           related_name='serve_error_matches')

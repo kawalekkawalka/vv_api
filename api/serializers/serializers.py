@@ -23,6 +23,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class PlayerFullSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     friends = serializers.SerializerMethodField()
@@ -33,6 +34,12 @@ class PlayerFullSerializer(serializers.ModelSerializer):
                   'user', 'friends')
         extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
                         'year_of_birth': {'required': False}, 'position': {'required': False},}
+
+    def get_photo(self, obj):
+        try:
+            return obj.get_photo_url
+        except KeyError:
+            return None
 
     def get_comments(self, obj):
         comments = Comment.objects.filter(object_id=obj.id, content_type=9)
