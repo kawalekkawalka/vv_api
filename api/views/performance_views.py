@@ -51,8 +51,6 @@ class MatchPerformanceViewset(viewsets.ModelViewSet):
         if match_id is not None:
             queryset = queryset.filter(match=match_id)
 
-        # match_performances_amount = int(self.request.query_params.get('amount', default=100))
-        # queryset = queryset[:match_performances_amount]
         return queryset
 
     @action(methods=['GET'], detail=False)

@@ -7,15 +7,16 @@ from api.models import Player, Team, PlayerMembership, UserProfile, Comment, Mat
 
 
 class PlayerSerializer(serializers.ModelSerializer):
-    photo = serializers.SerializerMethodField()
+    photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Player
-        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo')
+        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo', 'photo_url')
         extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
-                        'year_of_birth': {'required': False}, 'position': {'required': False}}
+                        'year_of_birth': {'required': False}, 'position': {'required': False},
+                        'photo': {'write_only': True}}
 
-    def get_photo(self, obj):
+    def get_photo_url(self, obj):
         try:
             return obj.get_photo_url
         except KeyError:
@@ -23,19 +24,17 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class PlayerFullSerializer(serializers.ModelSerializer):
-    photo = serializers.SerializerMethodField()
+    photo_url = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     friends = serializers.SerializerMethodField()
 
     class Meta:
         model = Player
-        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo', 'comments',
-                  'user', 'friends')
-        extra_kwargs = {'name': {'required': False}, 'surname': {'required': False}, 'height': {'required': False},
-                        'year_of_birth': {'required': False}, 'position': {'required': False},}
+        fields = ('id', 'name', 'surname', 'nick', 'year_of_birth', 'height', 'weight', 'position', 'photo_url'
+                  , 'comments', 'user', 'friends')
 
-    def get_photo(self, obj):
+    def get_photo_url(self, obj):
         try:
             return obj.get_photo_url
         except KeyError:

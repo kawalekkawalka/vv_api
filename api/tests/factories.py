@@ -80,13 +80,13 @@ class MatchFactory(DjangoModelFactory):
     set1_team1_score = factory.Faker('pyint', min_value=0, max_value=25)
     set2_team1_score = factory.Faker('pyint', min_value=0, max_value=25)
     set3_team1_score = factory.Faker('pyint', min_value=0, max_value=25)
-    set4_team1_score = factory.Faker('pyint', min_value=0, max_value=25, allow_null=True)
-    set5_team1_score = factory.Faker('pyint', min_value=0, max_value=25, allow_null=True)
+    set4_team1_score = factory.Faker('pyint', min_value=0, max_value=25)
+    set5_team1_score = factory.Faker('pyint', min_value=0, max_value=25)
     set1_team2_score = factory.Faker('pyint', min_value=0, max_value=25)
     set2_team2_score = factory.Faker('pyint', min_value=0, max_value=25)
     set3_team2_score = factory.Faker('pyint', min_value=0, max_value=25)
-    set4_team2_score = factory.Faker('pyint', min_value=0, max_value=25, allow_null=True)
-    set5_team2_score = factory.Faker('pyint', min_value=0, max_value=25, allow_null=True)
+    set4_team2_score = factory.Faker('pyint', min_value=0, max_value=25)
+    set5_team2_score = factory.Faker('pyint', min_value=0, max_value=25)
 
 
 class TeamInvitationFactory(DjangoModelFactory):
