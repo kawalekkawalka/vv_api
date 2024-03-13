@@ -65,6 +65,17 @@ class PlayerViewset(viewsets.ModelViewSet):
         serializer = PlayerFullSerializer(instance, many=False, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(methods=['GET'], detail=False)
+    def get_player_by_name(self, request):
+        name = self.request.query_params.get('name')
+        surname = self.request.query_params.get('surname')
+        if name:
+            player = Player.objects.filter(name__contains=name, surname__contains=surname).first()
+            if player:
+                return Response(PlayerSerializer(player).data, status=status.HTTP_200_OK)
+            return Response({'message': 'Bad player data'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Provide name param'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CommentViewset(viewsets.ModelViewSet):
     queryset = Comment.objects.all()

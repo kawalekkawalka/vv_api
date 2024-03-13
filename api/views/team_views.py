@@ -74,3 +74,13 @@ class TeamViewset(viewsets.ModelViewSet):
         else:
             teams = Team.objects.all().values_list('name', flat=True)
         return Response(teams, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], detail=False)
+    def get_team_by_name(self, request):
+        name = self.request.query_params.get('name')
+        if name:
+            team = Team.objects.filter(name__contains=name).first()
+            if team:
+                return Response(TeamSerializer(team).data, status=status.HTTP_200_OK)
+            return Response({'message': 'Bad team name'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Provide name param'}, status=status.HTTP_400_BAD_REQUEST)
